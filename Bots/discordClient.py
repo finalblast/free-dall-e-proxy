@@ -32,7 +32,7 @@ class DiscordBotClient(BotClient):
             if channel is None:
                 raise ValueError(f"Discord Channel ID {self.channel_id} not found")
 
-            sent_msg = await channel.send(f"<@{self.dalle_bot}> "+text)
+            sent_msg = await channel.send(f"<@{self.dalle_bot}>"+' Please draw:'+text+'\n'+config.addition_prompt)
             msg_id = sent_msg.id
             # 为这个消息创建一个新的 Event 对象
             response_event = asyncio.Event()
@@ -55,7 +55,7 @@ class DiscordBotClient(BotClient):
         if reply_to_msg_id is not None and reply_to_msg_id in self.pending_responses:
             response_event, _ = self.pending_responses[reply_to_msg_id]
             try:
-                url = message.embeds[0].image.url if message.embeds and message.embeds[0].image else None
+                url = message.attachments[0].url if message.attachments else None
                 if url:
                     self.pending_responses[reply_to_msg_id] = (response_event, url)
                 else:
@@ -70,8 +70,8 @@ class DiscordBotClient(BotClient):
                         else:
                             raise Exception("No message content found")
                     else:
-                        await asyncio.sleep(5)
-                        msg = message.content
+                        await asyncio.sleep(10)
+                        msg = message.attachments[0].url if message.attachments else None
                         self.pending_responses[reply_to_msg_id] = (response_event, msg)
                 except Exception as e:
                     logger.error(f"Discord client handle response error: {e}")
